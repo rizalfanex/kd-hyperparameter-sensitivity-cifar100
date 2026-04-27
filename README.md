@@ -1,71 +1,322 @@
+<div align="center">
+
 # Hyperparameter Sensitivity of Vanilla Knowledge Distillation for Compact CNNs on CIFAR-100
 
-![Python](https://img.shields.io/badge/Python-3.11-blue)
-![PyTorch](https://img.shields.io/badge/PyTorch-2.11-red)
-![Dataset](https://img.shields.io/badge/Dataset-CIFAR--100-lightgrey)
-![Task](https://img.shields.io/badge/Task-Knowledge%20Distillation-purple)
-![License](https://img.shields.io/badge/License-MIT-green)
+**Official repository for the published CNAHPC 2026 paper on vanilla knowledge distillation, compact CNNs, and hyperparameter sensitivity analysis.**
 
-This repository provides the code and experimental outputs for the paper:
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.11-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![Torchvision](https://img.shields.io/badge/Torchvision-0.26-orange)](https://pytorch.org/vision/stable/index.html)
+[![Dataset](https://img.shields.io/badge/Dataset-CIFAR--100-blueviolet)](https://www.cs.toronto.edu/~kriz/cifar.html)
+[![Task](https://img.shields.io/badge/Task-Knowledge%20Distillation-8A2BE2)](#knowledge-distillation-objective)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![DOI](https://img.shields.io/badge/DOI-10.47709%2Fcnahpc.v8i2.8239-blue)](https://doi.org/10.47709/cnahpc.v8i2.8239)
+
+</div>
+
+---
+
+## Paper
 
 > **Hyperparameter Sensitivity of Vanilla Knowledge Distillation for Compact CNNs on CIFAR-100**  
-> Mochamad Rizal Fauzan, Raden Muhammad Rafi Rachman, Shifa Rangga Saputra, and Daffa Irsyad Nugraha  
-> *Journal of Computer Networks, Architecture and High Performance Computing*, Vol. 8, No. 2, April 2026  
-> DOI: `10.47709/cnahpc.v8i2.8239`
+> **Mochamad Rizal Fauzan**, Raden Muhammad Rafi Rachman, Shifa Rangga Saputra, and Daffa Irsyad Nugraha  
+> *Journal of Computer Networks, Architecture and High Performance Computing*, Vol. 8, No. 2, pp. 235--246, April 2026  
+> DOI: [`10.47709/cnahpc.v8i2.8239`](https://doi.org/10.47709/cnahpc.v8i2.8239)
 
-The study systematically evaluates how two core vanilla knowledge distillation hyperparameters, namely **temperature scaling** (`T`) and **loss balancing** (`alpha`), affect compact convolutional neural networks on CIFAR-100. A **ResNet-50** teacher is used to distill knowledge into two lightweight student models: **MobileNetV2** and **ShuffleNetV2 x1.0**.
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Research Motivation](#research-motivation)
+- [Main Contributions](#main-contributions)
+- [Method Summary](#method-summary)
+- [Knowledge Distillation Objective](#knowledge-distillation-objective)
+- [Evaluation Metrics](#evaluation-metrics)
+- [Experimental Setup](#experimental-setup)
+- [Key Results](#key-results)
+- [Hyperparameter Sensitivity](#hyperparameter-sensitivity)
+- [Figures](#figures)
+- [Repository Structure](#repository-structure)
+- [Installation](#installation)
+- [Dataset](#dataset)
+- [Usage](#usage)
+- [Outputs](#outputs)
+- [Reproducibility Checklist](#reproducibility-checklist)
+- [Included and Excluded Files](#included-and-excluded-files)
+- [Citation](#citation)
+- [License](#license)
+- [Contact](#contact)
 
 ---
 
 ## Overview
 
-Knowledge distillation is commonly used to improve compact neural networks, but many studies still rely on inherited or default hyperparameter settings. This repository supports a controlled experimental study that re-examines vanilla KD under a unified CIFAR-100 setup.
+This repository contains the implementation and experimental artifacts for a controlled study of **vanilla knowledge distillation (KD)** on **CIFAR-100**. The study investigates how two fundamental KD hyperparameters affect compact convolutional neural networks:
 
-The main goals are:
+- **Temperature scaling** \((T)\)
+- **Loss balancing coefficient** \((\alpha)\)
 
-- compare standard supervised training and vanilla knowledge distillation for compact CNNs;
-- evaluate MobileNetV2 and ShuffleNetV2 x1.0 as lightweight student architectures;
-- analyze the sensitivity of temperature scaling (`T`) and loss balancing (`alpha`);
-- report not only accuracy, but also parameter count, inference latency, and training time.
+A **ResNet-50** model is used as the teacher, while **MobileNetV2** and **ShuffleNetV2 x1.0** are used as compact student architectures. The experiments compare standard supervised training and distillation-based training under the same dataset split, preprocessing pipeline, optimizer, scheduler, and evaluation protocol.
+
+The repository is designed to make the published results easier to inspect, reproduce, and extend.
+
+---
+
+## Research Motivation
+
+Compact CNNs are attractive for resource-constrained deployment because they reduce memory and computational requirements. However, their lower representational capacity often leads to reduced classification accuracy. Knowledge distillation is a practical strategy for improving compact models without modifying their inference architecture.
+
+Despite its popularity, vanilla KD is often applied using default or inherited hyperparameters. This repository supports the paper's central question:
+
+> **How sensitive is vanilla knowledge distillation to temperature scaling and loss balancing when applied to compact CNNs on CIFAR-100?**
+
+---
+
+## Main Contributions
+
+This repository supports the following contributions:
+
+1. **A controlled vanilla KD benchmark** using ResNet-50 as teacher and MobileNetV2 / ShuffleNetV2 x1.0 as compact students on CIFAR-100.
+2. **Accuracy-efficiency evaluation** covering top-1 accuracy, top-5 accuracy, parameter count, inference latency, and training time.
+3. **Hyperparameter sensitivity analysis** for temperature scaling \((T)\) and loss balancing \((\alpha)\).
+4. **Publication-ready outputs** including result summaries, training histories, and figures for accuracy, KD gains, and efficiency trade-offs.
+
+---
+
+## Method Summary
+
+The experimental pipeline consists of three main stages:
+
+```mermaid
+flowchart LR
+    A[CIFAR-100 Dataset] --> B[Preprocessing and 128x128 Resize]
+    B --> C[Train ResNet-50 Teacher]
+    C --> D[Train Compact Students]
+    D --> E[Standard Supervised Training]
+    D --> F[Vanilla Knowledge Distillation]
+    F --> G[Temperature and Alpha Ablation]
+    E --> H[Evaluation]
+    G --> H
+    H --> I[Accuracy, Latency, Params, Figures]
+```
+
+The teacher model is trained first using standard cross-entropy supervision. The trained teacher then provides softened probability distributions for the student models during distillation. The student is optimized using a combination of hard-label supervision and teacher-guided soft-target alignment.
+
+---
+
+## Knowledge Distillation Objective
+
+Let:
+
+- \(x\) be an input image,
+- \(y\) be its ground-truth label,
+- \(z_s\) be the student logits,
+- \(z_t\) be the teacher logits,
+- \(T\) be the temperature scaling parameter,
+- \(\alpha\) be the hard-label loss balancing coefficient,
+- \(C\) be the number of classes.
+
+The standard cross-entropy loss is defined as:
+
+$$
+\mathcal{L}_{\mathrm{CE}}
+=
+-\sum_{c=1}^{C} y_c \log p_s(c)
+$$
+
+where:
+
+$$
+p_s(c)=\mathrm{softmax}(z_s)_c
+$$
+
+The softened teacher and student probability distributions are computed as:
+
+$$
+p_t^{(T)}(c)
+=
+\frac{\exp(z_t^c/T)}
+{\sum_{j=1}^{C}\exp(z_t^j/T)}
+$$
+
+$$
+p_s^{(T)}(c)
+=
+\frac{\exp(z_s^c/T)}
+{\sum_{j=1}^{C}\exp(z_s^j/T)}
+$$
+
+The distillation loss is based on Kullback--Leibler divergence:
+
+$$
+\mathcal{L}_{\mathrm{KL}}
+=
+D_{\mathrm{KL}}
+\left(
+p_t^{(T)} \parallel p_s^{(T)}
+\right)
+$$
+
+The final vanilla KD objective is:
+
+$$
+\mathcal{L}_{\mathrm{KD}}
+=
+\alpha \mathcal{L}_{\mathrm{CE}}
++
+(1-\alpha)T^2
+D_{\mathrm{KL}}
+\left(
+p_t^{(T)} \parallel p_s^{(T)}
+\right)
+$$
+
+The \(T^2\) term follows the common KD formulation and compensates for the gradient scaling effect introduced by temperature smoothing.
+
+---
+
+## Evaluation Metrics
+
+### Top-k Accuracy
+
+Top-\(k\) accuracy measures whether the ground-truth label appears among the model's top-\(k\) predictions:
+
+$$
+\mathrm{Top}\text{-}k
+=
+\frac{1}{N}
+\sum_{i=1}^{N}
+\mathbf{1}
+\left[
+y_i \in \mathrm{Top}\text{-}k(\hat{p}_i)
+\right]
+\times 100\%
+$$
+
+where \(N\) is the number of test samples and \(\hat{p}_i\) is the predicted class-probability distribution for sample \(i\).
+
+### KD Accuracy Gain
+
+The accuracy improvement from knowledge distillation is computed as:
+
+$$
+\Delta_{\mathrm{Top}\text{-}1}
+=
+\mathrm{Top}\text{-}1_{\mathrm{KD}}
+-
+\mathrm{Top}\text{-}1_{\mathrm{Standard}}
+$$
+
+$$
+\Delta_{\mathrm{Top}\text{-}5}
+=
+\mathrm{Top}\text{-}5_{\mathrm{KD}}
+-
+\mathrm{Top}\text{-}5_{\mathrm{Standard}}
+$$
+
+### Latency
+
+Inference latency is reported in milliseconds per image:
+
+$$
+\mathrm{Latency}
+=
+\frac{1}{N}
+\sum_{i=1}^{N}
+t_i
+$$
+
+where \(t_i\) is the inference time for sample \(i\) after warm-up and GPU synchronization.
+
+---
+
+## Experimental Setup
+
+| Component | Configuration |
+|---|---|
+| Dataset | CIFAR-100 |
+| Original image size | 32 x 32 |
+| Resized input size | 128 x 128 |
+| Number of classes | 100 |
+| Teacher model | ResNet-50 |
+| Student models | MobileNetV2, ShuffleNetV2 x1.0 |
+| Training split | 45,000 images |
+| Validation split | 5,000 images |
+| Test split | 10,000 images |
+| Split seed | 42 |
+| Optimizer | AdamW |
+| Learning rate | 0.001 |
+| Weight decay | 0.0001 |
+| Batch size | 128 |
+| Scheduler | CosineAnnealingLR |
+| Precision | Automatic mixed precision |
+| Gradient clipping | 1.0 |
+| Teacher initialization | ImageNet pretrained |
+| Student initialization | ImageNet pretrained |
+| Selection criterion | Best validation top-1 accuracy |
 
 ---
 
 ## Key Results
 
-| Model | Training Type | Params (M) | Top-1 (%) | Top-5 (%) | Latency (ms) |
-|---|---:|---:|---:|---:|---:|
-| ResNet-50 | Teacher | 23.71 | 81.24 | 96.05 | 4.72 |
-| MobileNetV2 | Standard | 2.35 | 79.18 | 95.77 | 3.98 |
-| MobileNetV2 | KD | 2.35 | 80.83 | 96.40 | 3.44 |
-| ShuffleNetV2 x1.0 | Standard | 1.36 | 77.00 | 94.81 | 4.23 |
-| ShuffleNetV2 x1.0 | KD | 1.36 | 78.36 | 95.45 | 4.29 |
+### Overall Performance
 
-### KD Gains
+| Model | Training Type | Params (M) | Best Val Top-1 (%) | Test Loss | Top-1 (%) | Top-5 (%) | Latency (ms) | Train Time (s) |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| ResNet-50 | Teacher | 23.71 | 82.04 | 0.9568 | 81.24 | 96.05 | 4.72 | 5677.43 |
+| MobileNetV2 | Standard | 2.35 | 80.32 | 1.0382 | 79.18 | 95.77 | 3.98 | 5304.86 |
+| MobileNetV2 | KD | 2.35 | 81.56 | 1.0814 | 80.83 | 96.40 | 3.44 | 5471.55 |
+| ShuffleNetV2 x1.0 | Standard | 1.36 | 76.82 | 1.0456 | 77.00 | 94.81 | 4.23 | 5006.53 |
+| ShuffleNetV2 x1.0 | KD | 1.36 | 79.04 | 1.2488 | 78.36 | 95.45 | 4.29 | 5308.46 |
 
-| Student Model | Top-1 Gain | Top-5 Gain | Latency Difference |
+### Knowledge Distillation Gains
+
+| Student Model | Top-1 Gain | Top-5 Gain | Latency Change |
 |---|---:|---:|---:|
 | MobileNetV2 | +1.65 | +0.63 | -0.54 ms |
 | ShuffleNetV2 x1.0 | +1.36 | +0.64 | +0.05 ms |
 
-### Hyperparameter Ablation on MobileNetV2
+### Main Observation
 
-| Ablation Type | Setting | Best Val Top-1 (%) | Top-1 (%) | Top-5 (%) |
-|---|---|---:|---:|---:|
-| Temperature | `T = 2, alpha = 0.5` | 80.26 | 79.90 | 95.92 |
-| Temperature | `T = 4, alpha = 0.5` | 81.08 | 80.87 | 96.31 |
-| Temperature | `T = 6, alpha = 0.5` | 81.60 | 80.82 | 96.27 |
-| Loss balancing | `alpha = 0.3, T = 4` | 81.36 | 80.88 | 96.51 |
-| Loss balancing | `alpha = 0.5, T = 4` | 81.08 | 80.87 | 96.31 |
-| Loss balancing | `alpha = 0.7, T = 4` | 81.02 | 80.78 | 96.19 |
+Knowledge distillation improved both compact students. MobileNetV2 achieved the strongest compact-model result with **80.83% top-1 accuracy**, **96.40% top-5 accuracy**, and lower latency than its standard baseline. ShuffleNetV2 x1.0 also improved clearly in accuracy, with only a marginal latency increase.
 
-The best ablation configuration was obtained using:
+---
+
+## Hyperparameter Sensitivity
+
+### Temperature Scaling Ablation
+
+The temperature study was conducted on MobileNetV2 using \(\alpha = 0.5\).
+
+| Temperature | Alpha | Best Val Top-1 (%) | Top-1 (%) | Top-5 (%) |
+|---:|---:|---:|---:|---:|
+| 2 | 0.5 | 80.26 | 79.90 | 95.92 |
+| 4 | 0.5 | 81.08 | 80.87 | 96.31 |
+| 6 | 0.5 | 81.60 | 80.82 | 96.27 |
+
+### Loss Balancing Ablation
+
+The loss balancing study was conducted on MobileNetV2 using \(T = 4\).
+
+| Alpha | Temperature | Best Val Top-1 (%) | Top-1 (%) | Top-5 (%) |
+|---:|---:|---:|---:|---:|
+| 0.3 | 4 | 81.36 | 80.88 | 96.51 |
+| 0.5 | 4 | 81.08 | 80.87 | 96.31 |
+| 0.7 | 4 | 81.02 | 80.78 | 96.19 |
+
+### Best Ablation Configuration
 
 ```text
-T = 4
-alpha = 0.3
-Top-1 = 80.88%
-Top-5 = 96.51%
+Student      : MobileNetV2
+Temperature  : T = 4
+Alpha        : alpha = 0.3
+Top-1        : 80.88%
+Top-5        : 96.51%
 ```
+
+The ablation results indicate that vanilla KD is not merely a plug-and-play training strategy. Its effectiveness depends on the balance between task fidelity from ground-truth labels and transferable information from softened teacher predictions.
 
 ---
 
@@ -83,6 +334,16 @@ Top-5 = 96.51%
 
 ![Accuracy vs Latency](outputs_kd_paper_ready/figures/scatter_accuracy_vs_latency.png)
 
+### Accuracy-Parameter Trade-off
+
+![Accuracy vs Parameters](outputs_kd_paper_ready/figures/scatter_accuracy_vs_params.png)
+
+### Training Curves
+
+![MobileNetV2 Curves](outputs_kd_paper_ready/figures/curve_mobilenet_v2.png)
+
+![ShuffleNetV2 Curves](outputs_kd_paper_ready/figures/curve_shufflenet_v2_x1_0.png)
+
 ### Hyperparameter Sensitivity
 
 ![Temperature Ablation](outputs_kd_paper_ready/figures/ablation_top1_vs_temperature.png)
@@ -95,11 +356,11 @@ Top-5 = 96.51%
 
 ```text
 .
-├── train_kd_cifar100_paper_ready.py
-├── requirements.txt
-├── CITATION.bib
-├── LICENSE
 ├── README.md
+├── LICENSE
+├── CITATION.bib
+├── requirements.txt
+├── train_kd_cifar100_paper_ready.py
 └── outputs_kd_paper_ready/
     ├── results_summary.csv
     ├── results_summary.json
@@ -116,192 +377,211 @@ Top-5 = 96.51%
     │   ├── curve_shufflenet_v2_x1_0.png
     │   ├── ablation_top1_vs_temperature.png
     │   └── ablation_top1_vs_alpha.png
-    └── logs/
-        └── *_history.json
+    ├── logs/
+    │   ├── mobilenet_v2_standard_history.json
+    │   ├── mobilenet_v2_kd_history.json
+    │   ├── shufflenet_v2_x1_0_standard_history.json
+    │   ├── shufflenet_v2_x1_0_kd_history.json
+    │   └── resnet50_standard_history.json
+    └── ablation/
+        ├── mobilenet_v2_ablation_temperature_2_history.json
+        ├── mobilenet_v2_ablation_temperature_4_history.json
+        ├── mobilenet_v2_ablation_temperature_6_history.json
+        ├── mobilenet_v2_ablation_alpha_0.3_history.json
+        ├── mobilenet_v2_ablation_alpha_0.5_history.json
+        └── mobilenet_v2_ablation_alpha_0.7_history.json
 ```
 
-Large files such as raw CIFAR-100 files and model checkpoints are intentionally excluded from the repository to keep the GitHub repository lightweight and compliant with file-size limits.
-
----
-
-## Environment
-
-The reported experiments were conducted using:
-
-| Component | Configuration |
-|---|---|
-| Python | 3.11.14 |
-| Framework | PyTorch 2.11.0 + cu130 |
-| Torchvision | 0.26.0 + cu130 |
-| GPU | NVIDIA GeForce RTX 5060 |
-| Precision | Mixed precision training with AMP |
-| Dataset | CIFAR-100 |
-| Input size | 128 x 128 |
-| Batch size | 128 |
-| Optimizer | AdamW |
-| Learning rate | 1e-3 |
-| Weight decay | 1e-4 |
-| Scheduler | CosineAnnealingLR |
-| Random seed | 42 |
+Large raw datasets and checkpoint files are intentionally excluded from this repository.
 
 ---
 
 ## Installation
 
-Clone the repository:
+### 1. Clone Repository
 
 ```bash
 git clone https://github.com/rizalfanex/kd-hyperparameter-sensitivity-cifar100.git
 cd kd-hyperparameter-sensitivity-cifar100
 ```
 
-Create and activate a Python environment:
+### 2. Create Environment
+
+Using `venv`:
 
 ```bash
 python -m venv .venv
 ```
 
-For Windows PowerShell:
+Activate the environment.
+
+Windows PowerShell:
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
-For Linux or macOS:
+Linux or macOS:
 
 ```bash
 source .venv/bin/activate
 ```
 
-Install dependencies:
+### 3. Install Dependencies
 
 ```bash
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-Install the appropriate PyTorch and torchvision build for your CUDA version. For the reported Windows CUDA 13.0 environment:
+### 4. Install PyTorch
+
+Install the PyTorch build that matches your CUDA version. The reported experiments used PyTorch 2.11.0 with CUDA 13.0.
 
 ```bash
 python -m pip install torch==2.11.0+cu130 torchvision==0.26.0+cu130 -f https://download.pytorch.org/whl/cu130/torch_stable.html
 ```
 
-For a different CUDA version or CPU-only environment, install PyTorch using the official command generator from the PyTorch website.
+If your machine uses a different CUDA version or CPU-only setup, install PyTorch from the official selector:
+
+```text
+https://pytorch.org/get-started/locally/
+```
 
 ---
 
 ## Dataset
 
-The experiments use **CIFAR-100**. The dataset is automatically handled through `torchvision.datasets.CIFAR100` when running the training script.
+This project uses **CIFAR-100**. The raw dataset is not included in the repository because dataset archives and extracted files are large and should not be committed to GitHub.
 
-Dataset configuration used in the paper:
+The training script uses `torchvision.datasets.CIFAR100`, which can download and prepare the dataset automatically.
 
-| Item | Configuration |
-|---|---|
-| Number of classes | 100 |
-| Original training images | 50,000 |
-| Training split | 45,000 |
-| Validation split | 5,000 |
-| Test images | 10,000 |
-| Split seed | 42 |
-| Original image size | 32 x 32 |
-| Resized image size | 128 x 128 |
-| Normalization | ImageNet mean and standard deviation |
+```python
+torchvision.datasets.CIFAR100(
+    root="./data",
+    train=True,
+    download=True,
+    transform=...
+)
+```
+
+Dataset split used in the experiments:
+
+| Split | Number of Images |
+|---|---:|
+| Training | 45,000 |
+| Validation | 5,000 |
+| Test | 10,000 |
 
 ---
 
 ## Usage
 
-Run the full training and evaluation pipeline:
+### Run Full Training Pipeline
 
 ```bash
 python train_kd_cifar100_paper_ready.py
 ```
 
-Run the ablation pipeline only:
+This will train and evaluate:
+
+- ResNet-50 teacher
+- MobileNetV2 standard baseline
+- MobileNetV2 with KD
+- ShuffleNetV2 x1.0 standard baseline
+- ShuffleNetV2 x1.0 with KD
+
+### Run Ablation Only
 
 ```bash
 python train_kd_cifar100_paper_ready.py --ablation-only
 ```
 
-The script saves outputs to:
+This runs MobileNetV2 ablation experiments for:
+
+- \(T = 2, 4, 6\)
+- \(\alpha = 0.3, 0.5, 0.7\)
+
+### Expected Output Directory
 
 ```text
 outputs_kd_paper_ready/
 ```
 
-Expected outputs include:
+---
 
-- result summaries in `.csv` and `.json` format;
-- training history logs;
-- publication-ready figures;
-- model checkpoints generated locally during training.
+## Outputs
+
+The script produces several output files for analysis and reporting.
+
+| File | Description |
+|---|---|
+| `results_summary.csv` | Overall teacher and student results |
+| `results_summary.json` | JSON version of the overall results |
+| `kd_gain_summary.csv` | Accuracy and latency gain from KD |
+| `kd_gain_summary.json` | JSON version of KD gain summary |
+| `ablation_results.csv` | Temperature and alpha ablation results |
+| `ablation_results.json` | JSON version of ablation results |
+| `logs/*_history.json` | Training history for each main model |
+| `ablation/*_history.json` | Training history for each ablation run |
+| `figures/*.png` | Publication-ready figures |
 
 ---
 
-## Knowledge Distillation Objective
+## Reproducibility Checklist
 
-The vanilla KD loss combines hard-label supervision and soft-target supervision:
+For closer reproduction of the published results, use the following settings:
 
-```text
-L_KD = alpha * L_CE(z_s, y)
-       + (1 - alpha) * T^2 * D_KL(softmax(z_s / T), softmax(z_t / T))
-```
+- [x] CIFAR-100 benchmark dataset
+- [x] 128 x 128 resized input resolution
+- [x] ImageNet-pretrained teacher and student backbones
+- [x] ResNet-50 teacher
+- [x] MobileNetV2 and ShuffleNetV2 x1.0 students
+- [x] AdamW optimizer
+- [x] Learning rate of 0.001
+- [x] Weight decay of 0.0001
+- [x] Batch size of 128
+- [x] Cosine annealing scheduler
+- [x] Mixed precision training
+- [x] Random seed 42
+- [x] Best checkpoint selected using validation top-1 accuracy
+- [x] Latency measured with warm-up and GPU synchronization
 
-where:
-
-- `z_s` denotes the student logits;
-- `z_t` denotes the teacher logits;
-- `y` denotes the ground-truth label;
-- `T` is the temperature scaling parameter;
-- `alpha` is the hard-label loss balancing coefficient;
-- `L_CE` is the cross-entropy loss;
-- `D_KL` is the Kullback-Leibler divergence.
-
----
-
-## Reproducibility Notes
-
-To reproduce the reported results as closely as possible:
-
-1. use the same random seed (`42`);
-2. keep the same CIFAR-100 train-validation split;
-3. use the same input resolution (`128 x 128`);
-4. use ImageNet-pretrained backbones;
-5. select checkpoints based on best validation top-1 accuracy;
-6. measure latency after warm-up with GPU synchronization;
-7. do not compare latency across different hardware without reporting the device and measurement protocol.
-
-Small deviations may occur because of GPU type, CUDA/cuDNN behavior, PyTorch version, and hardware-level timing variation.
+Expected minor variations may occur because of hardware, CUDA/cuDNN behavior, PyTorch version, GPU timing variation, and random numerical effects.
 
 ---
 
-## What Is Included and Excluded
+## Included and Excluded Files
 
-Included:
+### Included
 
-- main training and ablation script;
+This repository includes:
+
+- training and evaluation code;
 - result summaries;
+- ablation summaries;
+- training histories;
 - figure files;
-- training logs;
-- citation file;
+- citation metadata;
 - license file.
 
-Excluded:
+### Excluded
 
-- CIFAR-100 raw dataset files;
-- large `.pt` model checkpoints;
-- local cache files;
-- Python bytecode files;
-- compressed archives.
+The following files are intentionally excluded:
 
-This keeps the repository clean and avoids GitHub's 100 MB file-size limitation.
+- raw CIFAR-100 files;
+- `.tar.gz`, `.gz`, `.zip`, and `.rar` archives;
+- `.pt`, `.pth`, `.ckpt`, and `.onnx` model weights;
+- Python cache files;
+- local environment folders.
+
+This keeps the repository lightweight and avoids GitHub's 100 MB file-size limit.
 
 ---
 
 ## Citation
 
-Please cite the paper if this repository is useful for your research:
+If you use this repository, please cite the paper:
 
 ```bibtex
 @article{fauzan2026kdhyperparameter,
@@ -322,10 +602,22 @@ A BibTeX entry is also provided in [`CITATION.bib`](CITATION.bib).
 
 ## License
 
-This project is released under the MIT License. See [`LICENSE`](LICENSE) for details.
+This repository is released under the MIT License. See [`LICENSE`](LICENSE) for details.
 
 ---
 
 ## Contact
 
-For questions, issues, or reproducibility discussions, please use the GitHub Issues page of this repository.
+For questions, reproducibility issues, or discussion, please open an issue in this repository:
+
+```text
+https://github.com/rizalfanex/kd-hyperparameter-sensitivity-cifar100/issues
+```
+
+---
+
+<div align="center">
+
+**If this repository is useful, please consider citing the paper and starring the repository.**
+
+</div>
