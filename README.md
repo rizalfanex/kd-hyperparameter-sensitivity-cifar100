@@ -20,7 +20,7 @@
 
 > **Hyperparameter Sensitivity of Vanilla Knowledge Distillation for Compact CNNs on CIFAR-100**  
 > **Mochamad Rizal Fauzan**, Raden Muhammad Rafi Rachman, Shifa Rangga Saputra, and Daffa Irsyad Nugraha  
-> *Journal of Computer Networks, Architecture and High Performance Computing*, Vol. 8, No. 2, pp. 235--246, April 2026  
+> *Journal of Computer Networks, Architecture and High Performance Computing*, Vol. 8, No. 2, pp. 235-246, April 2026  
 > DOI: [`10.47709/cnahpc.v8i2.8239`](https://doi.org/10.47709/cnahpc.v8i2.8239)
 
 ---
