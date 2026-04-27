@@ -1,0 +1,6 @@
+model,training_type,params_m,best_val_top1,test_loss,top1,top5,latency_ms,train_time_sec,checkpoint,history_path
+resnet50,teacher,23.712932,82.04,0.9568214933395386,81.24,96.05,4.721600008197129,5677.43479180336,outputs_kd_paper_ready\checkpoints\resnet50_standard_best.pt,outputs_kd_paper_ready\logs\resnet50_standard_history.json
+mobilenet_v2,standard,2.351972,80.32,1.038173456954956,79.18,95.77,3.984649993944913,5304.862389326096,outputs_kd_paper_ready\checkpoints\mobilenet_v2_standard_best.pt,outputs_kd_paper_ready\logs\mobilenet_v2_standard_history.json
+mobilenet_v2,kd,2.351972,81.56,1.0814367156028748,80.83,96.4,3.4400920069310814,5471.552707195282,outputs_kd_paper_ready\checkpoints\mobilenet_v2_kd_best.pt,outputs_kd_paper_ready\logs\mobilenet_v2_kd_history.json
+shufflenet_v2_x1_0,standard,1.356104,76.82,1.0455759380340577,77.0,94.81,4.234740998363122,5006.532382488251,outputs_kd_paper_ready\checkpoints\shufflenet_v2_x1_0_standard_best.pt,outputs_kd_paper_ready\logs\shufflenet_v2_x1_0_standard_history.json
+shufflenet_v2_x1_0,kd,1.356104,79.04,1.2488175533294679,78.36,95.45,4.287108996650204,5308.463376760483,outputs_kd_paper_ready\checkpoints\shufflenet_v2_x1_0_kd_best.pt,outputs_kd_paper_ready\logs\shufflenet_v2_x1_0_kd_history.json

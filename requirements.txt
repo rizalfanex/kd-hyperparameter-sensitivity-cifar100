@@ -1,0 +1,14 @@
+numpy>=1.25
+pandas
+matplotlib
+seaborn
+scikit-learn
+tqdm
+Pillow
+tensorboard
+
+# PyTorch: install matching CUDA build separately if needed
+# Example (Windows + cu130):
+# pip install torch==2.11.0+cu130 torchvision==0.26.0+cu130 -f https://download.pytorch.org/whl/cu130/torch_stable.html
+
+# For CPU-only testing, install torch with the CPU wheel or conda package

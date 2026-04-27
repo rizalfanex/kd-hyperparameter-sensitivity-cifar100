@@ -1,0 +1,26 @@
+[
+  {
+    "student":"mobilenet_v2",
+    "standard_top1":79.18,
+    "kd_top1":80.83,
+    "top1_gain":1.65,
+    "standard_top5":95.77,
+    "kd_top5":96.4,
+    "top5_gain":0.63,
+    "standard_latency_ms":3.9846499939,
+    "kd_latency_ms":3.4400920069,
+    "latency_diff_ms":-0.544557987
+  },
+  {
+    "student":"shufflenet_v2_x1_0",
+    "standard_top1":77.0,
+    "kd_top1":78.36,
+    "top1_gain":1.36,
+    "standard_top5":94.81,
+    "kd_top5":95.45,
+    "top5_gain":0.64,
+    "standard_latency_ms":4.2347409984,
+    "kd_latency_ms":4.2871089967,
+    "latency_diff_ms":0.0523679983
+  }
+]
