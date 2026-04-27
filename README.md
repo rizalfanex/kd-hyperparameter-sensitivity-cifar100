@@ -109,55 +109,39 @@ The teacher model is trained first using standard cross-entropy supervision. The
 
 Let:
 
-- `$x$` be an input image,
-- `$y$` be its ground-truth label,
-- `$z_s$` be the student logits,
-- `$z_t$` be the teacher logits,
-- `$T$` be the temperature scaling parameter,
-- `$\alpha$` be the hard-label loss balancing coefficient,
-- `$C$` be the number of classes.
+- $x$: input image
+- $y$: ground-truth label
+- $z_s$: student logits
+- $z_t$: teacher logits
+- $T$: temperature scaling parameter
+- $\alpha$: hard-label loss balancing coefficient
+- $C$: number of classes
 
 The standard cross-entropy loss is defined as:
 
-$$
-\mathcal{L}_{\mathrm{CE}} = -\sum_{c=1}^{C} y_c \log p_s(c)
-$$
+$$\mathcal{L}_{CE} = -\sum_{c=1}^{C} y_c \log p_s(c)$$
 
 where:
 
-$$
-p_s(c) = \mathrm{softmax}(z_s)_c
-$$
+$$p_s(c) = \mathrm{softmax}(z_s)_c$$
 
 The softened teacher probability distribution is computed as:
 
-$$
-p_t^{(T)}(c) = \frac{\exp(z_t^c / T)}{\sum_{j=1}^{C} \exp(z_t^j / T)}
-$$
+$$p_t^{T}(c) = \frac{\exp(z_t^c / T)}{\sum_{j=1}^{C} \exp(z_t^j / T)}$$
 
 The softened student probability distribution is computed as:
 
-$$
-p_s^{(T)}(c) = \frac{\exp(z_s^c / T)}{\sum_{j=1}^{C} \exp(z_s^j / T)}
-$$
+$$p_s^{T}(c) = \frac{\exp(z_s^c / T)}{\sum_{j=1}^{C} \exp(z_s^j / T)}$$
 
-The distillation loss is based on Kullback--Leibler divergence:
+The distillation loss is based on Kullback-Leibler divergence:
 
-$$
-\mathcal{L}_{\mathrm{KL}} = D_{\mathrm{KL}}\left(p_t^{(T)} \parallel p_s^{(T)}\right)
-$$
+$$\mathcal{L}_{KL} = D_{KL}\left(p_t^{T} \parallel p_s^{T}\right)$$
 
 The final vanilla knowledge distillation objective is:
 
-$$
-\mathcal{L}_{\mathrm{KD}} =
-\alpha \mathcal{L}_{\mathrm{CE}}
-+
-(1-\alpha)T^2
-D_{\mathrm{KL}}\left(p_t^{(T)} \parallel p_s^{(T)}\right)
-$$
+$$\mathcal{L}_{KD} = \alpha\mathcal{L}_{CE} + (1-\alpha)T^2D_{KL}\left(p_t^{T} \parallel p_s^{T}\right)$$
 
-The `$T^2$` term follows the common KD formulation and compensates for the gradient scaling effect introduced by temperature smoothing.
+The $T^2$ term follows the common KD formulation and compensates for the gradient scaling effect introduced by temperature smoothing.
 
 ---
 
@@ -165,52 +149,29 @@ The `$T^2$` term follows the common KD formulation and compensates for the gradi
 
 ### Top-k Accuracy
 
-Top-`$k$` accuracy measures whether the ground-truth label appears among the model's top-`$k$` predictions:
+Top - $k$ accuracy measures whether the ground-truth label appears among the model's top-$k$ predictions:
 
-$$
-\mathrm{Top}\text{-}k =
-\frac{1}{N}
-\sum_{i=1}^{N}
-\mathbf{1}
-\left[
-y_i \in \mathrm{Top}\text{-}k(\hat{p}_i)
-\right]
-\times 100\%
-$$
+$$\mathrm{Top}\text{-}k = \frac{1}{N}\sum_{i=1}^{N}\mathbf{1}\left[y_i \in \mathrm{Top}\text{-}k(\hat{p}_i)\right]\times 100\%$$
 
-where `$N$` is the number of test samples and `$\hat{p}_i$` is the predicted class-probability distribution for sample `$i$`.
+where $N$ is the number of test samples and $\hat{p}_i$ is the predicted class-probability distribution for sample $i$.
 
 ### KD Accuracy Gain
 
 The top-1 accuracy improvement from knowledge distillation is computed as:
 
-$$
-\Delta_{\mathrm{Top}\text{-}1} =
-\mathrm{Top}\text{-}1_{\mathrm{KD}}
--
-\mathrm{Top}\text{-}1_{\mathrm{Standard}}
-$$
+$$\Delta_{Top1} = Acc_{Top1}^{KD} - Acc_{Top1}^{Standard}$$
 
 The top-5 accuracy improvement from knowledge distillation is computed as:
 
-$$
-\Delta_{\mathrm{Top}\text{-}5} =
-\mathrm{Top}\text{-}5_{\mathrm{KD}}
--
-\mathrm{Top}\text{-}5_{\mathrm{Standard}}
-$$
+$$\Delta_{Top5} = Acc_{Top5}^{KD} - Acc_{Top5}^{Standard}$$
 
 ### Latency
 
 Inference latency is reported in milliseconds per image:
 
-$$
-\mathrm{Latency} =
-\frac{1}{N}
-\sum_{i=1}^{N} t_i
-$$
+$$\mathrm{Latency} = \frac{1}{N}\sum_{i=1}^{N}t_i$$
 
-where `$t_i$` is the inference time for sample `$i$` after warm-up and GPU synchronization.
+where $t_i$ is the inference time for sample $i$ after warm-up and GPU synchronization.
 
 ---
 
