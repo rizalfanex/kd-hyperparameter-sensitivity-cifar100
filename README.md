@@ -54,8 +54,8 @@
 
 This repository contains the implementation and experimental artifacts for a controlled study of **vanilla knowledge distillation (KD)** on **CIFAR-100**. The study investigates how two fundamental KD hyperparameters affect compact convolutional neural networks:
 
-- **Temperature scaling** \((T)\)
-- **Loss balancing coefficient** \((\alpha)\)
+- **Temperature scaling** **$T$**
+- **Loss balancing coefficient** **$\alpha$**
 
 A **ResNet-50** model is used as the teacher, while **MobileNetV2** and **ShuffleNetV2 x1.0** are used as compact student architectures. The experiments compare standard supervised training and distillation-based training under the same dataset split, preprocessing pipeline, optimizer, scheduler, and evaluation protocol.
 
@@ -79,7 +79,7 @@ This repository supports the following contributions:
 
 1. **A controlled vanilla KD benchmark** using ResNet-50 as teacher and MobileNetV2 / ShuffleNetV2 x1.0 as compact students on CIFAR-100.
 2. **Accuracy-efficiency evaluation** covering top-1 accuracy, top-5 accuracy, parameter count, inference latency, and training time.
-3. **Hyperparameter sensitivity analysis** for temperature scaling \((T)\) and loss balancing \((\alpha)\).
+3. **Hyperparameter sensitivity analysis** for temperature scaling **$T$** and loss balancing **$\alpha$**.
 4. **Publication-ready outputs** including result summaries, training histories, and figures for accuracy, KD gains, and efficiency trade-offs.
 
 ---
